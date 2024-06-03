@@ -41,15 +41,15 @@ total_retail_uk = (retail_uk.groupBy('InvoiceNo', 'CustomerID').agg(
     F.first('InvoiceDate').alias('InvoiceDate'),
     F.sum('TotalPrice').alias('TotalBill')).dropDuplicates(['InvoiceNo', 'CustomerID']))
     
-# spark.conf.set("spark.sql.legacy.timeParserPolicy", "LEGACY")
-# total_retail_uk = total_retail_uk.withColumn('Date', to_date(total_retail_uk['Invoicedate'], 'MM/dd/yyyy HH:mm').cast('date'))
-# total_retail_uk = total_retail_uk.withColumn('CurrentDate', current_date())
-# total_retail_uk = total_retail_uk.withColumn('DaysDifference', datediff(total_retail_uk['CurrentDate'], total_retail_uk['Date']))    
+spark.conf.set("spark.sql.legacy.timeParserPolicy", "LEGACY")
+total_retail_uk = total_retail_uk.withColumn('Date', to_date(total_retail_uk['Invoicedate'], 'MM/dd/yyyy HH:mm').cast('date'))
+total_retail_uk = total_retail_uk.withColumn('CurrentDate', current_date())
+total_retail_uk = total_retail_uk.withColumn('DaysDifference', datediff(total_retail_uk['CurrentDate'], total_retail_uk['Date']))    
 
 rfm_df = total_retail_uk.groupBy('customerID').agg(
     F.sum('TotalBill').alias('Monetary'),
     F.count('invoiceNo').alias('Frequency')
-    # F.min('DaysDifference').alias('Recency')
+    F.min('DaysDifference').alias('Recency')
 )
 
 rfm_dynamic_frame = DynamicFrame.fromDF(rfm_df, glueContext, "rfm_dynamic_frame")
